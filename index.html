@@ -28,7 +28,7 @@
   <link rel="preconnect" href="https://unpkg.com" crossorigin />
 
   <!-- Tailwind CSS (ملف ثابت مبني مسبقاً عبر Tailwind CLI — أسرع وبدون وميض على الجوال) -->
-  <link rel="stylesheet" href="assets/tailwind.css" />
+  <link rel="stylesheet" href="assets/tailwind.css?v=2" />
   <!-- Lucide Icons (مؤجّل: لا يعيق ظهور الصفحة على الجوال) -->
   <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js" defer></script>
 
@@ -131,14 +131,17 @@
 
     /* تحسينات الجوال: تمرير أنعم وبدون تقطيع */
     @media (max-width: 767px) {
-      /* تقليل الضبابية الثقيلة التي تسبب تقطيع التمرير على الجوال */
+      /* إزالة backdrop-filter على الجوال: هو السبب الأول لتقطّع التمرير
+         (إعادة رسم العنصر الثابت كل إطار). نستبدله بخلفية صلبة نظيفة. */
       .glass {
-        background: rgba(255,255,255,0.92);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
+        background: #ffffff;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
       }
-      /* ظهور أخف وأنعم للعناصر عند التمرير على الجوال */
-      .reveal { transform: translateY(10px); transition-duration: .35s; }
+      /* حركة ظهور خفيفة وسريعة على الجوال — الإظهار مضمون عبر JS فلا تختفي النصوص */
+      .reveal { transform: translateY(12px); transition-duration: .4s; }
+      /* إلغاء تأجيل الرسم على الجوال لمنع وميض الفراغ أثناء التمرير */
+      .cv-auto { content-visibility: visible !important; contain-intrinsic-size: auto !important; }
       /* تعطيل دوران المدارات الثقيل على الجوال لتوفير الأداء */
       .orbit, .orbit-rev { animation: none; }
       /* مساحة سفلية حتى لا يغطي شريط الاشتراك الثابت محتوى التذييل */
@@ -152,9 +155,11 @@
       contain-intrinsic-size: 1px 1100px;
     }
 
-    /* تخفيف تكلفة الرسم على الجوال: تقليل شدّة التوهّج الثقيل */
+    /* تخفيف تكلفة الرسم على الجوال: تقليل شدّة التوهّج الثقيل
+       وإيقاف نبض الشفافية على العناصر الضبابية الكبيرة (مكلف جداً أثناء التمرير) */
     @media (max-width: 767px) {
-      .decor-glow { filter: blur(70px) !important; opacity: .5; }
+      .decor-glow { filter: blur(60px) !important; opacity: .45; }
+      .animate-pulseGlow { animation: none !important; }
     }
 
     /* احترام تفضيل تقليل الحركة: إظهار فوري بدون أنميشن */
@@ -514,7 +519,7 @@
 
   <!-- ===================== شريط اشتراك ثابت (الجوال فقط) ===================== -->
   <div id="mobileCta" class="md:hidden fixed inset-x-0 bottom-0 z-40 transition-transform duration-300">
-    <div class="border-t border-saud-100 bg-white/90 backdrop-blur px-4 pt-3"
+    <div class="border-t border-saud-100 bg-white shadow-[0_-8px_24px_-12px_rgba(11,122,59,0.25)] px-4 pt-3"
          style="padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));">
       <a href="https://t.me/JOB_NEWS_KSA_BOT" target="_blank" rel="noopener"
          class="btn-glow flex w-full justify-center items-center gap-2 rounded-xl bg-gradient-to-l from-saud-500 to-saud-700 px-5 py-3.5 text-base font-bold text-white">
@@ -560,20 +565,29 @@
     }, { passive: true });
     onScroll();
 
-    const revealEls = document.querySelectorAll('.reveal');
-    const showAll = () => revealEls.forEach(el => el.classList.add('in'));
+    const revealEls = Array.from(document.querySelectorAll('.reveal'));
+    const reveal = el => el.classList.add('in');
+    const showAll = () => revealEls.forEach(reveal);
 
     if ('IntersectionObserver' in window) {
-      // هامش سفلي كبير يجعل كل عنصر يظهر قبل وصوله للشاشة بمسافة كافية،
-      // فلا يرى المستخدم فراغاً ثم قفزة مفاجئة أثناء التمرير على الجوال
+      // يظهر العنصر قبل وصوله للشاشة بقليل، فلا يرى المستخدم فراغاً أثناء التمرير
       const io = new IntersectionObserver((entries) => {
-        entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
-      }, { threshold: 0, rootMargin: '0px 0px 25% 0px' });
+        entries.forEach(e => { if (e.isIntersecting) { reveal(e.target); io.unobserve(e.target); } });
+      }, { threshold: 0, rootMargin: '0px 0px 12% 0px' });
       revealEls.forEach(el => io.observe(el));
 
-      // شبكة أمان: لو تأخّر المراقب (تمرير سريع على الجوال) نُظهر كل شيء
-      // عند انتهاء تحميل الصفحة حتى لا يبقى أي محتوى مخفياً.
-      window.addEventListener('load', () => setTimeout(showAll, 1200));
+      // إظهار فوري لأي عنصر داخل الشاشة أو قريب منها عند بدء الصفحة
+      // (يمنع بقاء النصوص مخفية إذا تأخّر المراقب على الجوال)
+      const revealInView = () => {
+        const h = window.innerHeight || document.documentElement.clientHeight;
+        for (const el of revealEls) {
+          if (el.classList.contains('in')) continue;
+          if (el.getBoundingClientRect().top < h * 1.1) { reveal(el); io.unobserve(el); }
+        }
+      };
+      requestAnimationFrame(revealInView);
+      // شبكة أمان قصيرة: لا يبقى أي محتوى مخفياً مهما حدث
+      setTimeout(showAll, 2500);
     } else {
       showAll();
     }
