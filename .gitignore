@@ -7,3 +7,6 @@ desktop.ini
 # Local env / tooling (if added later)
 node_modules/
 .vscode/
+
+# Tailwind standalone CLI binary (downloaded locally, not committed)
+tools/

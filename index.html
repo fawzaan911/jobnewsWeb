@@ -24,10 +24,13 @@
   <meta name="twitter:description" content="بوت تيليجرام ذكي يفلتر سوق الوظائف ويرسل لك أي وظيفة تطلب تخصصك فوراً برابط تقديم مباشر — مصمم للسوق السعودي." />
   <meta name="twitter:image" content="https://jobnews.sa/assets/logo.png" />
 
-  <!-- Tailwind CSS (إصدار مثبّت — للإنتاج يُفضّل بناء ملف CSS ثابت عبر Tailwind CLI) -->
-  <script src="https://cdn.tailwindcss.com/3.4.16"></script>
-  <!-- Lucide Icons (إصدار مثبّت) -->
-  <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+  <!-- تسريع الاتصال المبكر بالمصادر الخارجية (يقلّل زمن التحميل على الجوال) -->
+  <link rel="preconnect" href="https://unpkg.com" crossorigin />
+
+  <!-- Tailwind CSS (ملف ثابت مبني مسبقاً عبر Tailwind CLI — أسرع وبدون وميض على الجوال) -->
+  <link rel="stylesheet" href="assets/tailwind.css" />
+  <!-- Lucide Icons (مؤجّل: لا يعيق ظهور الصفحة على الجوال) -->
+  <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js" defer></script>
 
   <!-- Fonts (Arabic) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -36,66 +39,28 @@
 
   <link rel="icon" type="image/png" href="assets/logo.png" />
 
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['Tajawal', 'system-ui', '-apple-system', 'Segoe UI', 'Tahoma', 'Arial', 'sans-serif'],
-            display: ['Cairo', 'Tajawal', 'system-ui', 'Segoe UI', 'Tahoma', 'Arial', 'sans-serif'],
-          },
-          colors: {
-            // الأخضر السعودي المستوحى من الشعار
-            saud: {
-              50:  '#ecfdf3',
-              100: '#d1fae0',
-              200: '#a7f3c5',
-              300: '#6ee7a3',
-              400: '#34d27c',
-              500: '#12a85a',
-              600: '#0b7a3b',
-              700: '#0a6332',
-              800: '#0a4f2a',
-              900: '#063d22',
-            },
-          },
-          boxShadow: {
-            glow: '0 10px 40px -10px rgba(11,122,59,0.45)',
-            'glow-lg': '0 20px 60px -15px rgba(11,122,59,0.4)',
-          },
-          keyframes: {
-            float: {
-              '0%,100%': { transform: 'translateY(0) rotate(0deg)' },
-              '50%': { transform: 'translateY(-16px) rotate(-2deg)' },
-            },
-            pulseGlow: {
-              '0%,100%': { opacity: '0.4' },
-              '50%': { opacity: '0.85' },
-            },
-            spinSlow: { from: { transform: 'rotate(0deg)' }, to: { transform: 'rotate(360deg)' } },
-          },
-          animation: {
-            float: 'float 6s ease-in-out infinite',
-            pulseGlow: 'pulseGlow 4s ease-in-out infinite',
-            spinSlow: 'spinSlow 30s linear infinite',
-          },
-        },
-      },
-    };
-  </script>
-
   <style>
     html {
       scroll-padding-top: 96px;
       -webkit-text-size-adjust: 100%;
       text-size-adjust: 100%;
     }
+    /* منع التمرير الأفقي نهائياً: حاوية التمرير الفعلية هي html وليست body فقط،
+       لذلك نمنع الفائض الأفقي على الاثنين معاً مع تثبيت العرض الكامل */
+    html, body {
+      overflow-x: hidden;
+      width: 100%;
+      max-width: 100%;
+    }
     body {
+      position: relative;
       background-color: #f6faf7;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
       text-rendering: optimizeLegibility;
     }
+    /* أي عنصر زخرفي متوهّج لا يتسبب في تمرير أفقي حتى لو تجاوز عرض الشاشة */
+    .pointer-events-none[class*="blur-"] { will-change: opacity; }
 
     /* الخط العربي خط متصل: نمنع تباعد الأحرف الذي يكسر اتصالها،
        ونوفّر ارتفاع سطر مريح يمنع قص الحروف على الجوال */
@@ -105,6 +70,9 @@
       overflow-wrap: break-word;
     }
     h1, h2, h3, h4 { line-height: 1.3; }
+
+    /* حجز مكان الأيقونة قبل تحميل سكربت Lucide لمنع قفزة التخطيط على الجوال */
+    [data-lucide] { display: inline-block; vertical-align: middle; flex-shrink: 0; }
 
     .bg-grid {
       background-image:
@@ -169,12 +137,24 @@
         backdrop-filter: blur(8px);
         -webkit-backdrop-filter: blur(8px);
       }
-      /* ظهور أسرع وأخف للعناصر عند التمرير */
-      .reveal { transform: translateY(14px); transition-duration: .4s; }
+      /* ظهور أخف وأنعم للعناصر عند التمرير على الجوال */
+      .reveal { transform: translateY(10px); transition-duration: .35s; }
       /* تعطيل دوران المدارات الثقيل على الجوال لتوفير الأداء */
       .orbit, .orbit-rev { animation: none; }
       /* مساحة سفلية حتى لا يغطي شريط الاشتراك الثابت محتوى التذييل */
       body { padding-bottom: calc(76px + env(safe-area-inset-bottom, 0px)); }
+    }
+
+    /* تسريع العرض: لا يرسم المتصفح الأقسام خارج الشاشة إلا عند الحاجة،
+       مع حجز ارتفاع تقريبي لمنع قفز التخطيط — مكسب أداء كبير على الجوال */
+    .cv-auto {
+      content-visibility: auto;
+      contain-intrinsic-size: 1px 1100px;
+    }
+
+    /* تخفيف تكلفة الرسم على الجوال: تقليل شدّة التوهّج الثقيل */
+    @media (max-width: 767px) {
+      .decor-glow { filter: blur(70px) !important; opacity: .5; }
     }
 
     /* احترام تفضيل تقليل الحركة: إظهار فوري بدون أنميشن */
@@ -194,7 +174,7 @@
       <div class="mt-4 flex items-center justify-between rounded-2xl glass px-4 sm:px-6 py-3">
         <!-- الشعار -->
         <a href="#top" class="flex items-center gap-2.5">
-          <img src="assets/logo.png" alt="شعار جوب نيوز" class="h-10 w-10 rounded-lg object-contain" />
+          <img src="assets/logo.png" alt="شعار جوب نيوز" width="40" height="40" decoding="async" fetchpriority="high" class="h-10 w-10 rounded-lg object-contain" />
           <span class="font-display text-lg font-extrabold text-saud-800">
             جوب<span class="text-saud-600">نيوز</span>
           </span>
@@ -214,7 +194,7 @@
             اشترك الآن
             <i data-lucide="arrow-left" class="h-4 w-4"></i>
           </a>
-          <button id="menuBtn" type="button" aria-label="فتح القائمة" aria-expanded="false" aria-controls="mobileMenu" class="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-xl border border-saud-200 text-saud-700">
+          <button id="menuBtn" type="button" aria-label="فتح القائمة" aria-expanded="false" aria-controls="mobileMenu" class="md:hidden inline-flex h-11 w-11 items-center justify-center rounded-xl border border-saud-200 text-saud-700">
             <i data-lucide="menu" class="h-5 w-5"></i>
           </button>
         </div>
@@ -222,10 +202,10 @@
 
       <!-- قائمة الجوال -->
       <div id="mobileMenu" class="md:hidden hidden mt-2 rounded-2xl glass px-5 py-4">
-        <div class="flex flex-col gap-2 text-sm font-semibold text-slate-700">
-          <a href="#features" class="py-2 hover:text-saud-600">المميزات</a>
-          <a href="#pricing" class="py-2 hover:text-saud-600">الأسعار</a>
-          <a href="#support" class="py-2 hover:text-saud-600">الدعم الفني</a>
+        <div class="flex flex-col gap-1 text-sm font-semibold text-slate-700">
+          <a href="#features" class="py-2.5 hover:text-saud-600">المميزات</a>
+          <a href="#pricing" class="py-2.5 hover:text-saud-600">الأسعار</a>
+          <a href="#support" class="py-2.5 hover:text-saud-600">الدعم الفني</a>
           <a href="https://t.me/JOB_NEWS_KSA_BOT" target="_blank" rel="noopener" class="mt-2 inline-flex justify-center items-center gap-2 rounded-xl bg-gradient-to-l from-saud-500 to-saud-700 px-5 py-3 text-sm font-bold text-white">
             اشترك الآن
           </a>
@@ -237,13 +217,13 @@
   <!-- ===================== القسم الرئيسي ===================== -->
   <section class="relative pt-28 pb-14 sm:pt-44 sm:pb-32 overflow-hidden">
     <div class="absolute inset-0 bg-grid"></div>
-    <div class="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 h-[520px] w-[820px] rounded-full bg-saud-300/30 blur-[140px] animate-pulseGlow"></div>
-    <div class="pointer-events-none absolute top-20 -left-32 h-[380px] w-[380px] rounded-full bg-saud-400/20 blur-[120px]"></div>
+    <div class="decor-glow pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 h-[520px] w-[820px] max-w-full rounded-full bg-saud-300/30 blur-[140px] animate-pulseGlow"></div>
+    <div class="decor-glow pointer-events-none absolute top-20 -left-32 h-[380px] w-[380px] rounded-full bg-saud-400/20 blur-[120px]"></div>
 
     <div class="relative mx-auto max-w-7xl px-5 sm:px-8 grid lg:grid-cols-2 gap-10 lg:gap-16 items-center">
       <!-- النص -->
       <div class="reveal">
-        <span class="inline-flex items-center gap-2 rounded-full border border-saud-300 bg-saud-50 px-4 py-1.5 text-xs font-bold text-saud-700">
+        <span class="inline-flex items-center gap-2 rounded-2xl border border-saud-300 bg-saud-50 px-4 py-1.5 text-xs font-bold text-saud-700 leading-relaxed">
           <span class="relative flex h-2 w-2">
             <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-saud-500 opacity-75"></span>
             <span class="relative inline-flex h-2 w-2 rounded-full bg-saud-600"></span>
@@ -252,8 +232,7 @@
         </span>
 
         <h1 class="mt-6 font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.3] text-saud-900">
-          أتمتة الوظائف
-          <span class="text-gradient">بكل سهولة وذكاء</span>
+          أتمتة <span class="text-gradient">الوظائف</span>
         </h1>
 
         <p class="mt-6 max-w-xl font-display text-xl sm:text-2xl font-bold leading-snug text-saud-900">
@@ -275,11 +254,11 @@
         </div>
 
         <!-- صف الثقة -->
-        <div class="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4 text-sm text-slate-500">
-          <div class="flex items-center gap-2"><i data-lucide="bolt" class="h-4 w-4 text-saud-600"></i> تنبيهات لحظية</div>
-          <div class="flex items-center gap-2"><i data-lucide="target" class="h-4 w-4 text-saud-600"></i> وظائف تطلب تخصصك</div>
-          <div class="flex items-center gap-2"><i data-lucide="link" class="h-4 w-4 text-saud-600"></i> رابط تقديم مباشر</div>
-          <div class="flex items-center gap-2"><i data-lucide="map-pin" class="h-4 w-4 text-saud-600"></i> مخصّص للسوق السعودي</div>
+        <div class="mt-10 grid grid-cols-2 gap-x-6 gap-y-3 text-sm text-slate-500 sm:flex sm:flex-wrap sm:items-center sm:gap-x-8 sm:gap-y-4">
+          <div class="flex items-center gap-2"><i data-lucide="bolt" class="h-4 w-4 shrink-0 text-saud-600"></i> تنبيهات لحظية</div>
+          <div class="flex items-center gap-2"><i data-lucide="target" class="h-4 w-4 shrink-0 text-saud-600"></i> وظائف تطلب تخصصك</div>
+          <div class="flex items-center gap-2"><i data-lucide="link" class="h-4 w-4 shrink-0 text-saud-600"></i> رابط تقديم مباشر</div>
+          <div class="flex items-center gap-2"><i data-lucide="map-pin" class="h-4 w-4 shrink-0 text-saud-600"></i> مخصّص للسوق السعودي</div>
         </div>
       </div>
 
@@ -312,12 +291,12 @@
         <!-- شعار جوب نيوز -->
         <div class="relative animate-float">
           <div class="absolute inset-0 -m-10 rounded-full bg-saud-300/40 blur-[70px]"></div>
-          <img src="assets/logo-transparent.png" alt="شعار جوب نيوز"
+          <img src="assets/logo-transparent.png" alt="شعار جوب نيوز" width="288" height="288" loading="lazy" decoding="async"
                class="relative h-40 w-40 sm:h-72 sm:w-72 object-contain drop-shadow-[0_14px_30px_rgba(11,122,59,0.4)]" />
         </div>
 
         <!-- بطاقة تنبيه تيليجرام عائمة -->
-        <div class="absolute bottom-4 left-2 sm:left-8 glass rounded-2xl px-4 py-3 flex items-center gap-3 animate-float" style="animation-delay:1.5s">
+        <div class="absolute bottom-0 left-0 sm:bottom-4 sm:left-8 max-[360px]:hidden glass rounded-2xl px-4 py-3 flex items-center gap-3 animate-float" style="animation-delay:1.5s">
           <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-saud-100 text-saud-600">
             <i data-lucide="send" class="h-5 w-5"></i>
           </span>
@@ -370,8 +349,8 @@
   </section>
 
   <!-- ===================== الأسعار ===================== -->
-  <section id="pricing" class="relative py-16 sm:py-28">
-    <div class="pointer-events-none absolute left-1/2 top-1/3 -translate-x-1/2 h-[400px] w-[700px] rounded-full bg-saud-200/40 blur-[150px]"></div>
+  <section id="pricing" class="relative py-16 sm:py-28 overflow-hidden">
+    <div class="pointer-events-none absolute left-1/2 top-1/3 -translate-x-1/2 h-[400px] w-[700px] max-w-full rounded-full bg-saud-200/40 blur-[150px]"></div>
 
     <div class="relative mx-auto max-w-7xl px-5 sm:px-8">
       <div class="reveal mx-auto max-w-2xl text-center">
@@ -459,13 +438,13 @@
   </section>
 
   <!-- ===================== التذييل القانوني ===================== -->
-  <footer class="border-t border-saud-100 bg-white">
+  <footer class="cv-auto border-t border-saud-100 bg-white">
     <div class="mx-auto max-w-7xl px-5 sm:px-8 py-10 sm:py-14">
-      <div class="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
+      <div class="grid grid-cols-2 gap-x-6 gap-y-9 md:grid-cols-2 md:gap-10 lg:grid-cols-4">
         <!-- الهوية -->
-        <div class="lg:col-span-2">
+        <div class="col-span-2 lg:col-span-2">
           <a href="#top" class="flex items-center gap-2.5">
-            <img src="assets/logo.png" alt="شعار جوب نيوز" class="h-10 w-10 rounded-lg object-contain" />
+            <img src="assets/logo.png" alt="شعار جوب نيوز" width="40" height="40" loading="lazy" decoding="async" class="h-10 w-10 rounded-lg object-contain" />
             <span class="font-display text-lg font-extrabold text-saud-800">جوب<span class="text-saud-600">نيوز</span></span>
           </a>
           <p class="mt-4 max-w-sm text-sm text-slate-500 leading-relaxed">
@@ -546,7 +525,13 @@
   </div>
 
   <script>
-    lucide.createIcons();
+    // أيقونات Lucide مؤجّلة التحميل، لذا نُنشئها بعد جهوزية الـ DOM
+    const initIcons = () => { if (window.lucide) lucide.createIcons(); };
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initIcons);
+    } else {
+      initIcons();
+    }
 
     const menuBtn = document.getElementById('menuBtn');
     const mobileMenu = document.getElementById('mobileMenu');
@@ -576,15 +561,21 @@
     onScroll();
 
     const revealEls = document.querySelectorAll('.reveal');
+    const showAll = () => revealEls.forEach(el => el.classList.add('in'));
+
     if ('IntersectionObserver' in window) {
-      // rootMargin السفلي الموجب يجعل العناصر تظهر قبل دخولها الشاشة،
-      // فلا يحدث فراغ ثم ظهور مفاجئ أثناء التمرير على الجوال
+      // هامش سفلي كبير يجعل كل عنصر يظهر قبل وصوله للشاشة بمسافة كافية،
+      // فلا يرى المستخدم فراغاً ثم قفزة مفاجئة أثناء التمرير على الجوال
       const io = new IntersectionObserver((entries) => {
         entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
-      }, { threshold: 0, rootMargin: '0px 0px 12% 0px' });
+      }, { threshold: 0, rootMargin: '0px 0px 25% 0px' });
       revealEls.forEach(el => io.observe(el));
+
+      // شبكة أمان: لو تأخّر المراقب (تمرير سريع على الجوال) نُظهر كل شيء
+      // عند انتهاء تحميل الصفحة حتى لا يبقى أي محتوى مخفياً.
+      window.addEventListener('load', () => setTimeout(showAll, 1200));
     } else {
-      revealEls.forEach(el => el.classList.add('in'));
+      showAll();
     }
   </script>
 </body>
