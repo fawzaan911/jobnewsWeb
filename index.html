@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>جوبنيوز — أتمتة الوظائف وتنبيهات فورية عبر تيليجرام</title>
+  <meta name="description" content="جوبنيوز بوت ذكي مدمج مع تيليجرام يؤتمت البحث عن الوظائف ويرسل لك تنبيهات فورية ويجمع البيانات في ثوانٍ — مصمم للسوق السعودي." />
+  <meta name="theme-color" content="#0b7a3b" />
+  <link rel="canonical" href="https://jobnews.sa/" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="ar_SA" />
+  <meta property="og:site_name" content="جوبنيوز" />
+  <meta property="og:url" content="https://jobnews.sa/" />
+  <meta property="og:title" content="جوبنيوز — أتمتة الوظائف وتنبيهات فورية عبر تيليجرام" />
+  <meta property="og:description" content="بوت تيليجرام ذكي يفلتر سوق الوظائف ويرسل لك أي وظيفة تطلب تخصصك فوراً برابط تقديم مباشر — مصمم للسوق السعودي." />
+  <meta property="og:image" content="https://jobnews.sa/assets/logo.png" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@jobnewsksa" />
+  <meta name="twitter:title" content="جوبنيوز — أتمتة الوظائف وتنبيهات فورية عبر تيليجرام" />
+  <meta name="twitter:description" content="بوت تيليجرام ذكي يفلتر سوق الوظائف ويرسل لك أي وظيفة تطلب تخصصك فوراً برابط تقديم مباشر — مصمم للسوق السعودي." />
+  <meta name="twitter:image" content="https://jobnews.sa/assets/logo.png" />
+
+  <!-- Tailwind CSS (إصدار مثبّت — للإنتاج يُفضّل بناء ملف CSS ثابت عبر Tailwind CLI) -->
+  <script src="https://cdn.tailwindcss.com/3.4.16"></script>
+  <!-- Lucide Icons (إصدار مثبّت) -->
+  <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+
+  <!-- Fonts (Arabic) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet" />
+
+  <link rel="icon" type="image/png" href="assets/logo.png" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Tajawal', 'system-ui', 'sans-serif'],
+            display: ['Cairo', 'Tajawal', 'sans-serif'],
+          },
+          colors: {
+            // الأخضر السعودي المستوحى من الشعار
+            saud: {
+              50:  '#ecfdf3',
+              100: '#d1fae0',
+              200: '#a7f3c5',
+              300: '#6ee7a3',
+              400: '#34d27c',
+              500: '#12a85a',
+              600: '#0b7a3b',
+              700: '#0a6332',
+              800: '#0a4f2a',
+              900: '#063d22',
+            },
+          },
+          boxShadow: {
+            glow: '0 10px 40px -10px rgba(11,122,59,0.45)',
+            'glow-lg': '0 20px 60px -15px rgba(11,122,59,0.4)',
+          },
+          keyframes: {
+            float: {
+              '0%,100%': { transform: 'translateY(0) rotate(0deg)' },
+              '50%': { transform: 'translateY(-16px) rotate(-2deg)' },
+            },
+            pulseGlow: {
+              '0%,100%': { opacity: '0.4' },
+              '50%': { opacity: '0.85' },
+            },
+            spinSlow: { from: { transform: 'rotate(0deg)' }, to: { transform: 'rotate(360deg)' } },
+          },
+          animation: {
+            float: 'float 6s ease-in-out infinite',
+            pulseGlow: 'pulseGlow 4s ease-in-out infinite',
+            spinSlow: 'spinSlow 30s linear infinite',
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    html { scroll-padding-top: 96px; }
+    body { background-color: #f6faf7; }
+
+    .bg-grid {
+      background-image:
+        linear-gradient(to right, rgba(11,122,59,0.06) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(11,122,59,0.06) 1px, transparent 1px);
+      background-size: 56px 56px;
+      mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+    }
+
+    .text-gradient {
+      background: linear-gradient(100deg, #0b7a3b 0%, #12a85a 55%, #34d27c 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .glass {
+      background: rgba(255,255,255,0.7);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(11,122,59,0.12);
+    }
+
+    .card-hover { transition: transform .35s cubic-bezier(.2,.8,.2,1), border-color .35s, box-shadow .35s; }
+    .card-hover:hover {
+      transform: translateY(-6px);
+      border-color: rgba(11,122,59,0.4);
+      box-shadow: 0 24px 60px -22px rgba(11,122,59,0.45);
+    }
+
+    .btn-glow {
+      box-shadow: 0 10px 30px -8px rgba(11,122,59,0.55);
+      transition: transform .25s, box-shadow .25s, filter .25s;
+    }
+    .btn-glow:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 16px 44px -8px rgba(11,122,59,0.7);
+      filter: brightness(1.04);
+    }
+
+    .orbit { animation: spinSlow 30s linear infinite; }
+    .orbit-rev { animation: spinSlow 40s linear infinite reverse; }
+
+    .reveal { opacity: 0; transform: translateY(28px); transition: opacity .7s ease, transform .7s ease; }
+    .reveal.in { opacity: 1; transform: translateY(0); }
+
+    ::selection { background: rgba(18,168,90,0.25); }
+    ::-webkit-scrollbar { width: 10px; }
+    ::-webkit-scrollbar-track { background: #eef5f0; }
+    ::-webkit-scrollbar-thumb { background: #b9e3c9; border-radius: 8px; }
+    ::-webkit-scrollbar-thumb:hover { background: #12a85a; }
+  </style>
+</head>
+
+<body class="font-sans text-slate-600 antialiased overflow-x-hidden">
+
+  <!-- ===================== شريط التنقل ===================== -->
+  <header id="top" class="fixed top-0 inset-x-0 z-50 transition-all duration-300" data-nav>
+    <nav class="mx-auto max-w-7xl px-5 sm:px-8">
+      <div class="mt-4 flex items-center justify-between rounded-2xl glass px-4 sm:px-6 py-3">
+        <!-- الشعار -->
+        <a href="#top" class="flex items-center gap-2.5">
+          <img src="assets/logo.png" alt="شعار جوب نيوز" class="h-10 w-10 rounded-lg object-contain" />
+          <span class="font-display text-lg font-extrabold tracking-tight text-saud-800">
+            جوب<span class="text-saud-600">نيوز</span>
+          </span>
+        </a>
+
+        <!-- روابط سطح المكتب -->
+        <div class="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-600">
+          <a href="#features" class="hover:text-saud-600 transition-colors">المميزات</a>
+          <a href="#pricing" class="hover:text-saud-600 transition-colors">الأسعار</a>
+          <a href="#support" class="hover:text-saud-600 transition-colors">الدعم الفني</a>
+        </div>
+
+        <!-- زر الإجراء -->
+        <div class="flex items-center gap-3">
+          <a href="https://t.me/JOB_NEWS_KSA_BOT" target="_blank" rel="noopener"
+             class="hidden sm:inline-flex btn-glow items-center gap-2 rounded-xl bg-gradient-to-l from-saud-500 to-saud-700 px-5 py-2.5 text-sm font-bold text-white">
+            اشترك الآن
+            <i data-lucide="arrow-left" class="h-4 w-4"></i>
+          </a>
+          <button id="menuBtn" type="button" aria-label="فتح القائمة" aria-expanded="false" aria-controls="mobileMenu" class="md:hidden inline-flex h-10 w-10 items-center justify-center rounded-xl border border-saud-200 text-saud-700">
+            <i data-lucide="menu" class="h-5 w-5"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- قائمة الجوال -->
+      <div id="mobileMenu" class="md:hidden hidden mt-2 rounded-2xl glass px-5 py-4">
+        <div class="flex flex-col gap-2 text-sm font-semibold text-slate-700">
+          <a href="#features" class="py-2 hover:text-saud-600">المميزات</a>
+          <a href="#pricing" class="py-2 hover:text-saud-600">الأسعار</a>
+          <a href="#support" class="py-2 hover:text-saud-600">الدعم الفني</a>
+          <a href="https://t.me/JOB_NEWS_KSA_BOT" target="_blank" rel="noopener" class="mt-2 inline-flex justify-center items-center gap-2 rounded-xl bg-gradient-to-l from-saud-500 to-saud-700 px-5 py-3 text-sm font-bold text-white">
+            اشترك الآن
+          </a>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ===================== القسم الرئيسي ===================== -->
+  <section class="relative pt-36 pb-24 sm:pt-44 sm:pb-32 overflow-hidden">
+    <div class="absolute inset-0 bg-grid"></div>
+    <div class="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 h-[520px] w-[820px] rounded-full bg-saud-300/30 blur-[140px] animate-pulseGlow"></div>
+    <div class="pointer-events-none absolute top-20 -left-32 h-[380px] w-[380px] rounded-full bg-saud-400/20 blur-[120px]"></div>
+
+    <div class="relative mx-auto max-w-7xl px-5 sm:px-8 grid lg:grid-cols-2 gap-16 items-center">
+      <!-- النص -->
+      <div class="reveal">
+        <span class="inline-flex items-center gap-2 rounded-full border border-saud-300 bg-saud-50 px-4 py-1.5 text-xs font-bold text-saud-700">
+          <span class="relative flex h-2 w-2">
+            <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-saud-500 opacity-75"></span>
+            <span class="relative inline-flex h-2 w-2 rounded-full bg-saud-600"></span>
+          </span>
+          أي وظيفة تُعلن وتطلب تخصصك راح توصلك على طول
+        </span>
+
+        <h1 class="mt-6 font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold leading-[1.15] tracking-tight text-saud-900">
+          أتمتة الوظائف
+          <span class="text-gradient">بكل سهولة وذكاء</span>
+        </h1>
+
+        <p class="mt-6 max-w-xl font-display text-xl sm:text-2xl font-bold leading-snug text-saud-900">
+          تعبت من مشوار التنقّل بين قنوات ومواقع التوظيف؟
+        </p>
+        <p class="mt-4 max-w-xl text-lg leading-relaxed text-slate-500">
+          <span class="font-bold text-saud-700">جوبنيوز</span> بوت تيليجرام ذكي يفلتر لك السوق
+          ويجيب لك أي وظيفة جديدة تطلب تخصصك، ويرسلها لك
+          <span class="font-semibold text-saud-700">فوراً</span> ببيانات منظمة و <span class="font-semibold text-saud-700">رابط تقديم مباشر</span>
+          يختصر وقتك — بدون أي تطبيقات وبدون تعقيد.
+        </p>
+
+        <div class="mt-9 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+          <a href="https://t.me/JOB_NEWS_KSA_BOT" target="_blank" rel="noopener"
+             class="btn-glow inline-flex justify-center items-center gap-2 rounded-xl bg-gradient-to-l from-saud-500 to-saud-700 px-7 py-4 text-base font-bold text-white">
+            <i data-lucide="zap" class="h-5 w-5"></i>
+            اشترك الآن
+          </a>
+        </div>
+
+        <!-- صف الثقة -->
+        <div class="mt-10 flex flex-wrap items-center gap-x-8 gap-y-4 text-sm text-slate-500">
+          <div class="flex items-center gap-2"><i data-lucide="bolt" class="h-4 w-4 text-saud-600"></i> تنبيهات لحظية</div>
+          <div class="flex items-center gap-2"><i data-lucide="target" class="h-4 w-4 text-saud-600"></i> وظائف تطلب تخصصك</div>
+          <div class="flex items-center gap-2"><i data-lucide="link" class="h-4 w-4 text-saud-600"></i> رابط تقديم مباشر</div>
+          <div class="flex items-center gap-2"><i data-lucide="map-pin" class="h-4 w-4 text-saud-600"></i> مخصّص للسوق السعودي</div>
+        </div>
+      </div>
+
+      <!-- رسوم تقنية مجردة: مكعب متوهج + شبكة عُقد -->
+      <div class="reveal relative h-[420px] sm:h-[500px] flex items-center justify-center">
+        <div class="absolute h-72 w-72 rounded-full bg-saud-300/40 blur-[90px]"></div>
+
+        <div class="orbit absolute h-[420px] w-[420px] rounded-full border border-saud-200"></div>
+        <div class="orbit-rev absolute h-[300px] w-[300px] rounded-full border border-saud-300/60"></div>
+
+        <svg class="orbit absolute h-[420px] w-[420px]" viewBox="0 0 420 420" fill="none">
+          <g stroke="rgba(18,168,90,0.4)" stroke-width="1">
+            <line x1="210" y1="40" x2="360" y2="160" />
+            <line x1="360" y1="160" x2="300" y2="350" />
+            <line x1="300" y1="350" x2="110" y2="340" />
+            <line x1="110" y1="340" x2="55" y2="150" />
+            <line x1="55" y1="150" x2="210" y2="40" />
+            <line x1="210" y1="40" x2="300" y2="350" />
+            <line x1="55" y1="150" x2="360" y2="160" />
+          </g>
+          <g fill="#12a85a">
+            <circle cx="210" cy="40" r="6" />
+            <circle cx="360" cy="160" r="6" />
+            <circle cx="300" cy="350" r="6" />
+            <circle cx="110" cy="340" r="6" />
+            <circle cx="55" cy="150" r="6" />
+          </g>
+        </svg>
+
+        <!-- شعار جوب نيوز -->
+        <div class="relative animate-float">
+          <div class="absolute inset-0 -m-10 rounded-full bg-saud-300/40 blur-[70px]"></div>
+          <img src="assets/logo-transparent.png" alt="شعار جوب نيوز"
+               class="relative h-60 w-60 sm:h-72 sm:w-72 object-contain drop-shadow-[0_14px_30px_rgba(11,122,59,0.4)]" />
+        </div>
+
+        <!-- بطاقة تنبيه تيليجرام عائمة -->
+        <div class="absolute bottom-4 left-2 sm:left-8 glass rounded-2xl px-4 py-3 flex items-center gap-3 animate-float" style="animation-delay:1.5s">
+          <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-saud-100 text-saud-600">
+            <i data-lucide="send" class="h-5 w-5"></i>
+          </span>
+          <div class="text-xs text-right">
+            <p class="font-bold text-saud-800">وظيفة جديدة!</p>
+            <p class="text-slate-500">الرياض · قبل ثانيتين</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== المميزات ===================== -->
+  <section id="features" class="relative py-24 sm:py-28">
+    <div class="mx-auto max-w-7xl px-5 sm:px-8">
+      <div class="reveal mx-auto max-w-2xl text-center">
+        <span class="text-sm font-bold tracking-[0.2em] text-saud-600">المميزات</span>
+        <h2 class="mt-3 font-display text-3xl sm:text-4xl font-extrabold text-saud-900">
+          كل ما تحتاجه داخل تيليجرام
+        </h2>
+      </div>
+
+      <div class="mt-16 grid gap-6 md:grid-cols-2 max-w-3xl mx-auto">
+        <!-- بطاقة 1 -->
+        <div class="reveal card-hover rounded-2xl bg-white border border-saud-100 p-8">
+          <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-saud-50 text-saud-600 ring-1 ring-saud-200">
+            <i data-lucide="bell-ring" class="h-7 w-7"></i>
+          </div>
+          <h3 class="mt-6 font-display text-xl font-bold text-saud-900">تنبيهات فورية</h3>
+          <p class="mt-3 text-slate-500 leading-relaxed">
+            إشعارات لحظية تصلك مباشرةً على تيليجرام في اللحظة التي تظهر فيها وظيفة مناسبة —
+            لن تفوّت أي فرصة بعد الآن.
+          </p>
+        </div>
+
+        <!-- بطاقة 2 -->
+        <div class="reveal card-hover rounded-2xl bg-white border border-saud-100 p-8">
+          <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-saud-50 text-saud-600 ring-1 ring-saud-200">
+            <i data-lucide="send" class="h-7 w-7"></i>
+          </div>
+          <h3 class="mt-6 font-display text-xl font-bold text-saud-900">تكامل سلس مع تيليجرام</h3>
+          <p class="mt-3 text-slate-500 leading-relaxed">
+            لا حاجة لتثبيت أي تطبيقات ثقيلة ولا أي إعدادات معقّدة. كل شيء يُدار بالكامل
+            داخل المحادثة التي تستخدمها يوميًا.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== الأسعار ===================== -->
+  <section id="pricing" class="relative py-24 sm:py-28">
+    <div class="pointer-events-none absolute left-1/2 top-1/3 -translate-x-1/2 h-[400px] w-[700px] rounded-full bg-saud-200/40 blur-[150px]"></div>
+
+    <div class="relative mx-auto max-w-7xl px-5 sm:px-8">
+      <div class="reveal mx-auto max-w-2xl text-center">
+        <span class="text-sm font-bold tracking-[0.2em] text-saud-600">الأسعار</span>
+        <h2 class="mt-3 font-display text-3xl sm:text-4xl font-extrabold text-saud-900">
+          سعر واحد بسيط، بلا التزامات
+        </h2>
+        <p class="mt-3 text-slate-500">اشترك متى شئت وألغِ متى شئت — بدون رسوم خفية.</p>
+      </div>
+
+      <div class="mt-16 mx-auto max-w-md">
+        <!-- باقة واحدة -->
+        <div class="reveal relative card-hover rounded-3xl p-8 sm:p-10 bg-gradient-to-b from-saud-700 to-saud-900 ring-1 ring-saud-500 shadow-glow-lg">
+          <span class="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-l from-saud-300 to-saud-500 px-4 py-1 text-xs font-extrabold text-saud-900">
+            اشتراك واحد لكل المميزات
+          </span>
+          <h3 class="mt-2 font-display text-2xl font-extrabold text-white text-center">باقة جوبنيوز</h3>
+          <p class="mt-2 text-sm text-saud-100 text-center">كل ما تحتاجه لأتمتة وظائفك في اشتراك واحد بسيط.</p>
+          <div class="mt-6 flex items-end justify-center gap-2">
+            <span class="font-display text-6xl font-extrabold text-white">26</span>
+            <span class="mb-2 text-lg font-bold text-saud-100">ريال</span>
+            <span class="mb-2 text-sm text-saud-200">/ شهريًا</span>
+          </div>
+
+          <a href="https://t.me/JOB_NEWS_KSA_BOT" target="_blank" rel="noopener" class="btn-glow mt-7 inline-flex w-full justify-center items-center gap-2 rounded-xl bg-white px-6 py-4 font-bold text-saud-700">
+            اشترك الآن
+            <i data-lucide="arrow-left" class="h-4 w-4"></i>
+          </a>
+
+          <ul class="mt-8 space-y-4 text-sm text-saud-50">
+            <li class="flex items-start gap-3"><i data-lucide="check" class="mt-0.5 h-5 w-5 text-saud-300 shrink-0"></i><span>أي وظيفة تطلب تخصصك تصلك فورًا على تيليجرام</span></li>
+            <li class="flex items-start gap-3"><i data-lucide="check" class="mt-0.5 h-5 w-5 text-saud-300 shrink-0"></i><span>تنبيهات لحظية وقائمة أولوية</span></li>
+            <li class="flex items-start gap-3"><i data-lucide="check" class="mt-0.5 h-5 w-5 text-saud-300 shrink-0"></i><span>دعم فني على مدار الساعة</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- وسائل الدفع -->
+      <div class="reveal mt-12 flex flex-col items-center gap-4">
+        <p class="text-xs tracking-[0.2em] text-slate-400">مدفوعات آمنة مدعومة عبر</p>
+        <div class="flex flex-wrap items-center justify-center gap-4">
+          <!-- مدى -->
+          <div class="flex h-11 items-center gap-2 rounded-xl border border-saud-100 bg-white px-5 shadow-sm">
+            <span class="font-display text-sm font-extrabold tracking-tight text-saud-800">mada</span>
+            <span class="text-xs text-saud-500">●</span>
+          </div>
+          <!-- Apple Pay -->
+          <div class="flex h-11 items-center gap-1.5 rounded-xl border border-saud-100 bg-white px-5 text-slate-800 shadow-sm">
+            <i data-lucide="apple" class="h-4 w-4"></i>
+            <span class="font-display text-sm font-semibold">Pay</span>
+          </div>
+          <!-- Visa -->
+          <div class="flex h-11 items-center rounded-xl border border-saud-100 bg-white px-5 shadow-sm">
+            <span class="font-display text-base font-extrabold italic tracking-wide text-blue-700">VISA</span>
+          </div>
+          <!-- Mastercard -->
+          <div class="flex h-11 items-center gap-1 rounded-xl border border-saud-100 bg-white px-5 shadow-sm">
+            <span class="h-4 w-4 rounded-full bg-red-500/80"></span>
+            <span class="-mr-2 h-4 w-4 rounded-full bg-amber-400/80"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== شريط الدعوة للإجراء ===================== -->
+  <section id="support" class="relative py-16">
+    <div class="mx-auto max-w-7xl px-5 sm:px-8">
+      <div class="reveal relative overflow-hidden rounded-3xl bg-gradient-to-l from-saud-700 to-saud-900 ring-1 ring-saud-500 p-10 sm:p-14 text-center">
+        <div class="pointer-events-none absolute inset-0 bg-grid opacity-20"></div>
+        <div class="pointer-events-none absolute -bottom-20 left-1/2 -translate-x-1/2 h-60 w-[600px] rounded-full bg-saud-400/30 blur-[120px]"></div>
+        <h2 class="relative font-display text-3xl sm:text-4xl font-extrabold text-white">
+          جاهز لأتمتة بحثك عن الوظائف؟
+        </h2>
+        <div class="relative mt-8 flex flex-col sm:flex-row justify-center gap-4">
+          <a href="https://t.me/JOB_NEWS_KSA_BOT" target="_blank" rel="noopener" class="btn-glow inline-flex justify-center items-center gap-2 rounded-xl bg-white px-7 py-4 font-bold text-saud-700">
+            <i data-lucide="zap" class="h-5 w-5"></i> اشترك الآن
+          </a>
+          <a href="tel:+966552925911" class="inline-flex justify-center items-center gap-2 rounded-xl border border-white/30 bg-white/10 px-7 py-4 font-bold text-white transition hover:bg-white/20">
+            <i data-lucide="phone" class="h-5 w-5"></i> تواصل مع الدعم
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== التذييل القانوني ===================== -->
+  <footer class="border-t border-saud-100 bg-white">
+    <div class="mx-auto max-w-7xl px-5 sm:px-8 py-14">
+      <div class="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
+        <!-- الهوية -->
+        <div class="lg:col-span-2">
+          <a href="#top" class="flex items-center gap-2.5">
+            <img src="assets/logo.png" alt="شعار جوب نيوز" class="h-10 w-10 rounded-lg object-contain" />
+            <span class="font-display text-lg font-extrabold text-saud-800">جوب<span class="text-saud-600">نيوز</span></span>
+          </a>
+          <p class="mt-4 max-w-sm text-sm text-slate-500 leading-relaxed">
+            منصة أتمتة الوظائف عبر تيليجرام، مصمّمة للسوق السعودي: تنبيهات وظائف فورية
+            وجمع بيانات ذكي يختصر وقتك في البحث عن الفرص المناسبة لتخصصك.
+          </p>
+        </div>
+
+        <!-- المنتج -->
+        <div>
+          <h4 class="text-sm font-bold tracking-wider text-saud-900">المنتج</h4>
+          <ul class="mt-4 space-y-3 text-sm text-slate-500">
+            <li><a href="#features" class="hover:text-saud-600 transition">المميزات</a></li>
+            <li><a href="#pricing" class="hover:text-saud-600 transition">الأسعار</a></li>
+            <li><a href="mailto:support@jobnews.sa" class="hover:text-saud-600 transition">الدعم الفني</a></li>
+          </ul>
+        </div>
+
+        <!-- القانوني -->
+        <div>
+          <h4 class="text-sm font-bold tracking-wider text-saud-900">الشؤون القانونية</h4>
+          <ul class="mt-4 space-y-3 text-sm text-slate-500">
+            <li><a href="privacy.html" class="hover:text-saud-600 transition">سياسة الخصوصية</a></li>
+            <li><a href="terms.html" class="hover:text-saud-600 transition">شروط الاستخدام</a></li>
+            <li><a href="refund.html" class="hover:text-saud-600 transition">سياسة الاسترجاع</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- معلومات التواصل -->
+      <div class="mt-10 flex flex-wrap items-center gap-3 text-sm">
+        <div class="inline-flex items-center gap-2.5 rounded-xl border border-saud-100 bg-white px-3.5 py-2 text-slate-600 shadow-sm">
+          <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-saud-50 text-saud-600 ring-1 ring-saud-100">
+            <i data-lucide="building-2" class="h-4 w-4"></i>
+          </span>
+          <span class="font-medium">سجل تجاري رقم: <span dir="ltr">7050863906</span></span>
+        </div>
+        <a href="mailto:support@jobnews.sa" class="group inline-flex items-center gap-2.5 rounded-xl border border-saud-100 bg-white px-3.5 py-2 text-slate-600 shadow-sm transition hover:border-saud-300 hover:text-saud-700">
+          <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-saud-50 text-saud-600 ring-1 ring-saud-100 transition group-hover:bg-saud-100">
+            <i data-lucide="mail" class="h-4 w-4"></i>
+          </span>
+          <span class="font-medium">support@jobnews.sa</span>
+        </a>
+        <a href="tel:+966552925911" class="group inline-flex items-center gap-2.5 rounded-xl border border-saud-100 bg-white px-3.5 py-2 text-slate-600 shadow-sm transition hover:border-saud-300 hover:text-saud-700">
+          <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-saud-50 text-saud-600 ring-1 ring-saud-100 transition group-hover:bg-saud-100">
+            <i data-lucide="phone" class="h-4 w-4"></i>
+          </span>
+          <span class="font-medium" dir="ltr">+966 55 292 5911</span>
+        </a>
+        <a href="https://x.com/jobnewsksa" target="_blank" rel="noopener" class="group inline-flex items-center gap-2.5 rounded-xl border border-saud-100 bg-white px-3.5 py-2 text-slate-600 shadow-sm transition hover:border-saud-300 hover:text-saud-700">
+          <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-saud-50 text-saud-600 ring-1 ring-saud-100 transition group-hover:bg-saud-100">
+            <svg viewBox="0 0 24 24" fill="currentColor" class="h-3.5 w-3.5"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          </span>
+          <span class="font-medium" dir="ltr">@jobnewsksa</span>
+        </a>
+      </div>
+
+      <div class="mt-12 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-saud-100 pt-6">
+        <p class="text-xs text-slate-400">© 2026 جوبنيوز. جميع الحقوق محفوظة. الرياض، المملكة العربية السعودية.</p>
+        <div class="flex items-center gap-3 text-slate-400">
+          <a href="https://t.me/JOB_NEWS_KSA_BOT" target="_blank" rel="noopener" aria-label="تيليجرام" class="hover:text-saud-600 transition"><i data-lucide="send" class="h-4 w-4"></i></a>
+          <a href="https://x.com/jobnewsksa" target="_blank" rel="noopener" aria-label="X" class="hover:text-saud-600 transition"><svg viewBox="0 0 24 24" fill="currentColor" class="h-4 w-4"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    lucide.createIcons();
+
+    const menuBtn = document.getElementById('menuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    const syncMenuState = () => {
+      const isOpen = !mobileMenu.classList.contains('hidden');
+      menuBtn.setAttribute('aria-expanded', String(isOpen));
+      menuBtn.setAttribute('aria-label', isOpen ? 'إغلاق القائمة' : 'فتح القائمة');
+    };
+    menuBtn?.addEventListener('click', () => { mobileMenu.classList.toggle('hidden'); syncMenuState(); });
+    mobileMenu?.querySelectorAll('a').forEach(a => a.addEventListener('click', () => { mobileMenu.classList.add('hidden'); syncMenuState(); }));
+
+    const nav = document.querySelector('[data-nav]');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 20) nav.classList.add('drop-shadow-xl');
+      else nav.classList.remove('drop-shadow-xl');
+    });
+
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+  </script>
+</body>
+</html>

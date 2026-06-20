@@ -1,0 +1,9 @@
+# OS / editor files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log
+
+# Local env / tooling (if added later)
+node_modules/
+.vscode/
