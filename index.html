@@ -32,10 +32,12 @@
   <!-- Lucide Icons (مؤجّل: لا يعيق ظهور الصفحة على الجوال) -->
   <script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js" defer></script>
 
-  <!-- Fonts (Arabic) -->
+  <!-- Fonts (Arabic) — تحميل غير حاجب للعرض لتسريع أول رسم على الجوال (خصوصاً iOS) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet" />
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" media="print" onload="this.media='all'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" /></noscript>
 
   <link rel="icon" type="image/png" href="assets/logo.png" />
 
@@ -296,7 +298,7 @@
         <!-- شعار جوب نيوز -->
         <div class="relative animate-float">
           <div class="absolute inset-0 -m-10 rounded-full bg-saud-300/40 blur-[70px]"></div>
-          <img src="assets/logo-transparent.png" alt="شعار جوب نيوز" width="288" height="288" loading="lazy" decoding="async"
+          <img src="assets/logo-transparent.png" alt="شعار جوب نيوز" width="288" height="288" decoding="async" fetchpriority="high"
                class="relative h-40 w-40 sm:h-72 sm:w-72 object-contain drop-shadow-[0_14px_30px_rgba(11,122,59,0.4)]" />
         </div>
 
@@ -550,6 +552,30 @@
 
     const nav = document.querySelector('[data-nav]');
     const mobileCta = document.getElementById('mobileCta');
+
+    // ----- منطق الظهور (reveal) -----
+    const revealEls = Array.from(document.querySelectorAll('.reveal'));
+    let pending = revealEls.length;
+    const reveal = (el) => {
+      if (el.classList.contains('in')) return;
+      el.classList.add('in');
+      pending--;
+    };
+    const showAll = () => revealEls.forEach(reveal);
+    // يُظهر أي عنصر دخل (أو قارب) الشاشة. يعمل أثناء التمرير بالقصور الذاتي على iOS
+    // حيث يؤجّل Safari استدعاءات IntersectionObserver حتى يتوقّف التمرير.
+    const revealInView = () => {
+      if (!pending) return;
+      const h = window.innerHeight || document.documentElement.clientHeight;
+      // نقرأ كل المواضع أولاً ثم نكتب، لتفادي إعادة التخطيط المتكرر (layout thrash)
+      const toReveal = [];
+      for (const el of revealEls) {
+        if (el.classList.contains('in')) continue;
+        if (el.getBoundingClientRect().top < h * 1.1) toReveal.push(el);
+      }
+      toReveal.forEach(reveal);
+    };
+
     let scrollTicking = false;
     const onScroll = () => {
       const y = window.scrollY;
@@ -559,38 +585,25 @@
       scrollTicking = false;
     };
     window.addEventListener('scroll', () => {
+      // مباشر: يعمل أثناء القصور الذاتي على iOS حتى لو تأخّرت rAF أو IntersectionObserver
+      revealInView();
       if (scrollTicking) return;
       scrollTicking = true;
       requestAnimationFrame(onScroll);
     }, { passive: true });
     onScroll();
 
-    const revealEls = Array.from(document.querySelectorAll('.reveal'));
-    const reveal = el => el.classList.add('in');
-    const showAll = () => revealEls.forEach(reveal);
-
+    // IntersectionObserver كتحسين إضافي (يُظهر العنصر قبل وصوله بقليل على المتصفحات التي تدعمه أثناء التمرير)
     if ('IntersectionObserver' in window) {
-      // يظهر العنصر قبل وصوله للشاشة بقليل، فلا يرى المستخدم فراغاً أثناء التمرير
       const io = new IntersectionObserver((entries) => {
         entries.forEach(e => { if (e.isIntersecting) { reveal(e.target); io.unobserve(e.target); } });
       }, { threshold: 0, rootMargin: '0px 0px 12% 0px' });
       revealEls.forEach(el => io.observe(el));
-
-      // إظهار فوري لأي عنصر داخل الشاشة أو قريب منها عند بدء الصفحة
-      // (يمنع بقاء النصوص مخفية إذا تأخّر المراقب على الجوال)
-      const revealInView = () => {
-        const h = window.innerHeight || document.documentElement.clientHeight;
-        for (const el of revealEls) {
-          if (el.classList.contains('in')) continue;
-          if (el.getBoundingClientRect().top < h * 1.1) { reveal(el); io.unobserve(el); }
-        }
-      };
-      requestAnimationFrame(revealInView);
-      // شبكة أمان قصيرة: لا يبقى أي محتوى مخفياً مهما حدث
-      setTimeout(showAll, 2500);
-    } else {
-      showAll();
     }
+
+    // إظهار فوري لما هو داخل الشاشة عند البداية + شبكة أمان قصيرة
+    requestAnimationFrame(revealInView);
+    setTimeout(showAll, 2500);
   </script>
 </body>
 </html>
