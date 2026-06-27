@@ -479,9 +479,9 @@
         <div>
           <h4 class="text-sm font-bold text-saud-900">الشؤون القانونية</h4>
           <ul class="mt-4 space-y-3 text-sm text-slate-500">
-            <li><a href="privacy.html" class="hover:text-saud-600 transition">سياسة الخصوصية</a></li>
-            <li><a href="terms.html" class="hover:text-saud-600 transition">شروط الاستخدام</a></li>
-            <li><a href="refund.html" class="hover:text-saud-600 transition">سياسة الاسترجاع</a></li>
+            <li><a href="privacy" class="hover:text-saud-600 transition">سياسة الخصوصية</a></li>
+            <li><a href="terms" class="hover:text-saud-600 transition">شروط الاستخدام</a></li>
+            <li><a href="refund" class="hover:text-saud-600 transition">سياسة الاسترجاع</a></li>
           </ul>
         </div>
       </div>
@@ -609,6 +609,34 @@
     // إظهار فوري لما هو داخل الشاشة عند البداية + شبكة أمان قصيرة
     requestAnimationFrame(revealInView);
     setTimeout(showAll, 2500);
+
+    // ----- عناوين الصفحات حسب القسم -----
+    const HOME_TITLE = 'جوبنيوز — أتمتة الوظائف وتنبيهات فورية عبر تيليجرام';
+    const SECTION_TITLES = {
+      features: 'المميزات — جوبنيوز',
+      pricing: 'الأسعار — جوبنيوز',
+      support: 'الدعم الفني — جوبنيوز',
+    };
+    const applyPageTitle = (id) => {
+      document.title = (id && SECTION_TITLES[id]) ? SECTION_TITLES[id] : HOME_TITLE;
+    };
+    const syncTitleFromHash = () => applyPageTitle(location.hash.replace(/^#/, ''));
+    syncTitleFromHash();
+    window.addEventListener('hashchange', syncTitleFromHash);
+    if ('IntersectionObserver' in window) {
+      const sections = ['features', 'pricing', 'support']
+        .map(id => document.getElementById(id))
+        .filter(Boolean);
+      const titleIo = new IntersectionObserver((entries) => {
+        if (location.hash) return;
+        const visible = entries.filter(e => e.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+        if (visible.length) applyPageTitle(visible[0].target.id);
+      }, { threshold: [0.15, 0.35], rootMargin: '-25% 0px -50% 0px' });
+      sections.forEach(s => titleIo.observe(s));
+      window.addEventListener('scroll', () => {
+        if (!location.hash && window.scrollY < 280) applyPageTitle('');
+      }, { passive: true });
+    }
   </script>
 </body>
 </html>
